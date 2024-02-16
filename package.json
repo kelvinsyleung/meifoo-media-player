@@ -4,7 +4,7 @@
     "description": "Custom React Media Player Component for MeiFoo",
     "main": "dist/cjs/index.js",
     "module": "dist/esm/index.js",
-	"type": "module",
+    "type": "module",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write --parser typescript '**/*.{ts,tsx}'",
@@ -18,6 +18,7 @@
         "@rollup/plugin-commonjs": "^25.0.7",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-typescript": "^11.1.6",
+        "@types/node-sass": "^4.11.7",
         "@types/react": "^18.2.55",
         "@typescript-eslint/eslint-plugin": "^7.0.1",
         "@typescript-eslint/parser": "^7.0.1",
@@ -27,17 +28,26 @@
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-storybook": "^0.6.15",
+        "node-sass": "^9.0.0",
         "prettier": "^3.2.5",
         "react": "^18.2.0",
         "rollup": "^4.11.0",
         "rollup-plugin-dts": "^6.1.0",
+        "sass": "^1.71.0",
         "typescript": "^5.3.3"
     },
     "typings": "dist/index.d.ts",
-	"files": [
-		"dist"
-	],
-	"peerDependencies": {
-		"react": "^18.0.0"
-	}
+    "files": [
+        "dist"
+    ],
+    "peerDependencies": {
+        "react": "^18.0.0"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.11.3",
+        "@emotion/styled": "^11.11.0",
+        "@mui/icons-material": "^5.15.10",
+        "@mui/material": "^5.15.10",
+        "react-transition-group": "^4.4.5"
+    }
 }
