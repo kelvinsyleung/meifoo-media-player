@@ -1,0 +1,35 @@
+.vp-btn {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: clamp(2.5rem, 3.5vw, 4.5rem);
+    margin: auto;
+    font-size: clamp(1.2rem, 2vw, 2rem);
+    color: #fff;
+    background-color: transparent;
+    aspect-ratio: 1;
+
+    &::before {
+        content: attr(data-label);
+        position: absolute;
+        display: none;
+        bottom: 100%;
+        width: max-content;
+        padding: 0.5rem 0.75rem;
+        border-radius: 5px;
+        background-color: rgba(0, 0, 0, 0.8);
+        font-weight: 600;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 200ms ease-out;
+    }
+
+    &.label::before {
+        display: block;
+    }
+
+    &:hover::before {
+        opacity: 1;
+    }
+}
