@@ -1,0 +1,21 @@
+.vp-dropdown {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    width: clamp(25rem, 30vw, 40rem);
+    overflow: hidden;
+    transition: opacity 200ms ease-out;
+    background-color: rgba(0, 0, 0, 0.8);
+
+    &-enter {
+        opacity: 0;
+
+        &-active {
+            opacity: 1;
+        }
+    }
+
+    &-exit-active {
+        opacity: 0;
+    }
+}
