@@ -13,10 +13,11 @@ Synchronised playback mechanism of the multiple videos involves speeding up or s
 
 | Deadline | Event | Completion |
 | ---- | ----- | ---------- |
-| 23 Feb 2024 | Boilerplate video player - Single video | |
-| 27 Feb 2024 | Integration with external cloud provider | |
-| 1 Mar 2024 | Front-end enhancement - 2 videos playback | |
-| 15 Mar 2024 | Upload video assets to cloud provider for testing | |
-| 22 Mar 2024 | Front-end enhancement - Multi videos playback with control | |
-| 5 April 2024 | Integration Testing on components and video playback | |
-| 12 April 2024 | Develop and integrate to Wix site as custom component | |
+| 7 March 2024 | Boilerplate video player - Single video | Completed |
+| 12 March 2024 | Front-end enhancement - dynamic bitrate | |
+| 14 March 2024 | Front-end enhancement - 2 videos playback | |
+| 19 March 2024 | Front-end enhancement - Multi videos playback with control | |
+| 21 March 2024 | Cloud service survey | |
+| 25 March 2024 | Upload video assets to cloud provider for testing | |
+| 27 March 2024 | Integration Testing on components and video playback | |
+| 1 April 2024 | Develop and integrate to Wix site as custom component | |
