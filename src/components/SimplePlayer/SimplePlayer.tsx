@@ -6,9 +6,10 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
-// import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsIcon from "@mui/icons-material/Settings";
 import PictureInPictureAltIcon from "@mui/icons-material/PictureInPictureAlt";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import PopupDrawer from "../PopupDrawer";
 
 const theme = createTheme({
     palette: {
@@ -21,12 +22,19 @@ const theme = createTheme({
     },
 });
 
-const SimplePlayer: React.FC<{
+interface SimplePlayerProps {
     videoSrc: string;
     isSingleViewMode: boolean;
     onPlay?: () => void;
     onPause?: () => void;
-}> = ({ videoSrc, isSingleViewMode = false, onPlay, onPause }) => {
+}
+
+const SimplePlayer: React.FC<SimplePlayerProps> = ({
+    videoSrc,
+    isSingleViewMode = false,
+    onPlay,
+    onPause,
+}) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
@@ -36,7 +44,7 @@ const SimplePlayer: React.FC<{
     const [seekTooltipPosition, setSeekTooltipPosition] = useState("");
     const [duration, setDuration] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    // const [displayDropdown, setDisplayDropdown] = useState(false);
+    const [displaySettings, setDisplaySettings] = useState(false);
 
     const handlePlayPause = useCallback(() => {
         if (isPlaying) {
@@ -282,15 +290,18 @@ const SimplePlayer: React.FC<{
                                 </div>
                             </div>
                             <div className="right-controls">
-                                {/* TODO: settings drawer */}
-                                {/* <IconButton
+                                <PopupDrawer
+                                    on={displaySettings}
+                                    onClose={setDisplaySettings}
+                                />
+                                <IconButton
                                     color="primary"
                                     onClick={() => {
-                                        setDisplayDropdown(!displayDropdown);
+                                        setDisplaySettings((prev) => !prev);
                                     }}
                                 >
                                     <SettingsIcon />
-                                </IconButton> */}
+                                </IconButton>
                                 <IconButton
                                     color="primary"
                                     onClick={handlePictureInPicture}

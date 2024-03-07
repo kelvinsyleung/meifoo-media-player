@@ -3,14 +3,14 @@ import type { Meta, StoryObj } from "@storybook/react";
 import SimplePlayer from "./SimplePlayer";
 import "./SimplePlayer.scss";
 
-const meta = {
+const meta: Meta<typeof SimplePlayer> = {
     title: "Example/SimplePlayer",
     component: SimplePlayer,
     parameters: {
         layout: "centered",
     },
     tags: ["autodocs"],
-} satisfies Meta<typeof SimplePlayer>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
