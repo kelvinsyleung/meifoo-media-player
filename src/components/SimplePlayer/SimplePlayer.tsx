@@ -195,6 +195,23 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         [setActiveResolutionHeight],
     );
 
+    const intervalRef = useRef<ReturnType<typeof setInterval>>();
+    useEffect(() => {
+        if (activeResolutionHeight !== "auto") {
+            clearInterval(intervalRef.current);
+            return;
+        }
+
+        intervalRef.current = setInterval(() => {
+            const player = shakaPlayer.current!;
+            const tracks = player.getVariantTracks();
+            const sortedTracks = tracks.sort((trackA, trackB) =>
+                (trackA?.height || 0) < (trackB?.height || 0) ? -1 : 1,
+            );
+            setResolutions(sortedTracks);
+        }, 5000);
+    }, [activeResolutionHeight]);
+
     const handleFullScreen = useCallback(() => {
         if (!isFullScreen) {
             if (videoRef.current) {
