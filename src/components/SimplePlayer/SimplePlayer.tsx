@@ -13,6 +13,7 @@ import PictureInPictureAltIcon from "@mui/icons-material/PictureInPictureAlt";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import PopupDrawer from "../PopupDrawer";
 import VolumePopup from "../VolumePopup";
+import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
 import { formatTime } from "../../utils";
 
 const theme = createTheme({
@@ -41,6 +42,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
 }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [volumeState, setVolumeState] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const volumeData = useRef(volumeState || 1);
@@ -65,6 +67,20 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
             onPlay?.();
         }
     }, [isPlaying, onPause, onPlay]);
+
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const showLoaderHandler = () => {
+        timeoutRef.current = setTimeout(() => {
+            setIsLoading(true);
+        }, 300);
+    };
+
+    const hideLoaderHandler = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setIsLoading(false);
+    };
 
     const handleMute = () => {
         if (videoRef.current) {
@@ -248,15 +264,24 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
     return (
         <ThemeProvider theme={theme}>
             <div className="video-player-container">
-                <video
-                    ref={videoRef}
-                    src={videoSrc}
+                <div
+                    className="video-container"
                     onClick={handlePlayPause}
                     onDoubleClick={handleFullScreen}
-                    onLoadedMetadata={handleDurationChange}
-                    onVolumeChange={handleVolumeChange}
-                    onTimeUpdate={handleTimeUpdate}
-                />
+                >
+                    <video
+                        ref={videoRef}
+                        src={videoSrc}
+                        onLoadedMetadata={handleDurationChange}
+                        onVolumeChange={handleVolumeChange}
+                        onTimeUpdate={handleTimeUpdate}
+                        onSeeking={showLoaderHandler}
+                        onSeeked={hideLoaderHandler}
+                        onWaiting={showLoaderHandler}
+                        onCanPlay={hideLoaderHandler}
+                    />
+                    <LoadingIndicator on={isLoading} />
+                </div>
                 {isSingleViewMode && (
                     <div className="controls">
                         <div className="controls-progress-bar-container">
