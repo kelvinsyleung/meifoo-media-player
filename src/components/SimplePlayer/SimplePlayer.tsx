@@ -68,17 +68,11 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     }, [isPlaying, onPause, onPlay]);
 
-    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
     const showLoaderHandler = () => {
-        timeoutRef.current = setTimeout(() => {
-            setIsLoading(true);
-        }, 300);
+        setIsLoading(true);
     };
 
     const hideLoaderHandler = () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
         setIsLoading(false);
     };
 
