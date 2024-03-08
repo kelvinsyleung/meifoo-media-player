@@ -127,7 +127,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                 }
             }
         }
-    }, []);
+    }, [duration]);
 
     const handleDurationChange = useCallback(() => {
         if (videoRef.current) {
