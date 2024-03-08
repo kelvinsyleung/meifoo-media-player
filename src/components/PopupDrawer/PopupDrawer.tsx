@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import "./PopupDrawer.scss";
 import { CSSTransition } from "react-transition-group";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
