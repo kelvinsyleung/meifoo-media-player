@@ -55,6 +55,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
     const [activePlaybackRate, setActivePlaybackRate] = useState(1);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displaySettings, setDisplaySettings] = useState(false);
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const handlePlayPause = useCallback(() => {
         if (isPlaying) {
@@ -359,11 +360,15 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                                             <VolumeUpIcon />
                                         )}
                                     </IconButton>
-                                    <VolumePopup
-                                        isDisplaying={displayVolume}
-                                        currentVolume={volumeState}
-                                        onVolumeInputChange={handleVolumeInput}
-                                    />
+                                    {!isMobile && (
+                                        <VolumePopup
+                                            isDisplaying={displayVolume}
+                                            currentVolume={volumeState}
+                                            onVolumeInputChange={
+                                                handleVolumeInput
+                                            }
+                                        />
+                                    )}
                                 </div>
                                 <div className="time">
                                     <span>{formatTime(currentTime)}</span>
