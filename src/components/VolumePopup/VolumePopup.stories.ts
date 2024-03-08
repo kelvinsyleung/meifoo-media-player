@@ -18,5 +18,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
     args: {
         isDisplaying: true,
+        currentVolume: 0.5,
+        onVolumeInputChange: (event) => {
+            console.log(event.target.value);
+        },
     },
 };
