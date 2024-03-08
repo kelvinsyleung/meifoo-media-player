@@ -16,7 +16,7 @@
         position: relative;
         display: flex;
         align-items: center;
-        width: calc(100% - clamp(1rem, 1.5vw, 2rem));
+        width: calc(100% - clamp(1rem, 1.5vw, 1.5rem));
         height: 100%;
 
         &-background,
@@ -41,9 +41,9 @@
 
         &-current-thumb {
             position: absolute;
-            right: calc(0px - clamp(1rem, 1.5vw, 2rem) / 2);
-            width: clamp(1rem, 1.5vw, 2rem);
-            height: clamp(1rem, 1.5vw, 2rem);
+            right: calc(0px - clamp(1rem, 1.5vw, 1.5rem) / 2);
+            width: clamp(1rem, 1.5vw, 1.5rem);
+            height: clamp(1rem, 1.5vw, 1.5rem);
             border-radius: 50px;
             background-color: #cd131c;
 
