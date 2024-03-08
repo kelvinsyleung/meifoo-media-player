@@ -125,6 +125,7 @@
                     opacity: 0;
                     transform: translateX(-50%);
                     transition: opacity 200ms ease-out;
+                    z-index: 100;
                 }
             }
         }
