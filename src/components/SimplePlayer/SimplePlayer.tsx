@@ -13,6 +13,7 @@ import PictureInPictureAltIcon from "@mui/icons-material/PictureInPictureAlt";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import PopupDrawer from "../PopupDrawer";
 import VolumePopup from "../VolumePopup";
+import { formatTime } from "../../utils";
 
 const theme = createTheme({
     palette: {
@@ -209,12 +210,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     };
 
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-    };
-
+    // keyboard shortcuts
     useEffect(() => {
         const videoElement = videoRef.current;
         const handleKeyDown = (event: KeyboardEvent) => {
