@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import "./PopupDrawer.scss";
 import { CSSTransition } from "react-transition-group";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -8,6 +14,9 @@ interface PopupDrawerProps {
     onClose: (on: boolean) => void;
     activePlaybackRate: number;
     onChangePlaybackRate: (playbackRate: number) => void;
+    resolutions: shaka.extern.TrackList;
+    activeResolutionHeight: number | "auto";
+    onChangeResolution: (resolution: shaka.extern.Track | "auto") => void;
 }
 
 const PopupDrawer: React.FC<PopupDrawerProps> = ({
@@ -15,6 +24,9 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
     onClose,
     activePlaybackRate,
     onChangePlaybackRate,
+    resolutions,
+    activeResolutionHeight,
+    onChangeResolution,
 }) => {
     const [isMounted, setIsMounted] = useState(false);
     const [isInMainMenu, setIsInMainMenu] = useState(true);
@@ -68,38 +80,128 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
         setDrawerHeight(element.offsetHeight);
     };
 
-    const selectMenuHandler = (type: "resolution" | "speed") => {
-        setIsInMainMenu(false);
-        setActiveType(type);
-    };
-
-    const selectPlaybackRateHandler = (playbackRate: number) => {
+    const selectMenuHandler = useCallback((type: "resolution" | "speed") => {
         return () => {
-            setIsInMainMenu(true);
-            onChangePlaybackRate(playbackRate);
+            setIsInMainMenu(false);
+            setActiveType(type);
         };
-    };
+    }, []);
 
-    const mainMenu = (
-        <div className="popup-drawer-menu">
-            <ul className="popup-drawer-list">
-                <li
-                    className="popup-drawer-list-item"
-                    onClick={() => selectMenuHandler("speed")}
-                >
-                    <span>Speed</span>
-                    <span>{activePlaybackRate}x</span>
-                </li>
-                <li
-                    className="popup-drawer-list-item"
-                    onClick={() => selectMenuHandler("resolution")}
-                >
-                    <span>Resolution</span>
-                    <span>1080p</span>
-                </li>
-            </ul>
-        </div>
+    const selectPlaybackRateHandler = useCallback(
+        (playbackRate: number) => {
+            return () => {
+                setIsInMainMenu(true);
+                onChangePlaybackRate(playbackRate);
+            };
+        },
+        [onChangePlaybackRate],
     );
+
+    const matchedResolution = useCallback(
+        () =>
+            resolutions.find(
+                (resolution) => resolution.height === activeResolutionHeight,
+            ),
+        [activeResolutionHeight, resolutions],
+    );
+
+    const selectResolutionHandler = useCallback(
+        (resolution: shaka.extern.Track | "auto") => {
+            return () => {
+                setIsInMainMenu(true);
+                onChangeResolution(resolution);
+            };
+        },
+        [onChangeResolution],
+    );
+
+    const autoResolutionHeight = useMemo(() => {
+        const autoResolution = resolutions.find(
+            (resolution) => resolution.active,
+        )?.height;
+
+        return autoResolution ? `(${autoResolution}p)` : "";
+    }, [resolutions]);
+
+    const mainMenu = useMemo(() => {
+        return (
+            <div className="popup-drawer-menu">
+                <ul className="popup-drawer-list">
+                    <li
+                        className="popup-drawer-list-item"
+                        onClick={selectMenuHandler("speed")}
+                    >
+                        <span>Speed</span>
+                        <span>{activePlaybackRate}x</span>
+                    </li>
+                    <li
+                        className="popup-drawer-list-item"
+                        onClick={selectMenuHandler("resolution")}
+                    >
+                        <span>Resolution</span>
+                        <span>
+                            {activeResolutionHeight === "auto" ||
+                            !matchedResolution
+                                ? `Auto ${autoResolutionHeight}`
+                                : `${activeResolutionHeight}p`}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        );
+    }, [
+        activePlaybackRate,
+        activeResolutionHeight,
+        autoResolutionHeight,
+        matchedResolution,
+        selectMenuHandler,
+    ]);
+
+    const playBackRateList = useMemo(() => {
+        return (
+            <ul>
+                {[0.5, 0.75, 1, 1.25, 1.5].map((playbackRate) => (
+                    <li
+                        key={playbackRate}
+                        className={`popup-drawer-list-item${
+                            activePlaybackRate === playbackRate ? " active" : ""
+                        }`}
+                        onClick={selectPlaybackRateHandler(playbackRate)}
+                    >
+                        {playbackRate}
+                    </li>
+                ))}
+            </ul>
+        );
+    }, [activePlaybackRate, selectPlaybackRateHandler]);
+
+    const resolutionList = useMemo(() => {
+        return (
+            <ul>
+                <li
+                    className={`popup-drawer-list-item${
+                        activeResolutionHeight === "auto" ? " active" : ""
+                    }`}
+                    onClick={selectResolutionHandler("auto")}
+                >
+                    Auto
+                </li>
+                {resolutions.map((resolution) => (
+                    <li
+                        key={resolution.id}
+                        className={`popup-drawer-list-item${
+                            activeResolutionHeight === resolution.height
+                                ? " active"
+                                : ""
+                        }`}
+                        onClick={selectResolutionHandler(resolution)}
+                    >
+                        {resolution.height}p
+                    </li>
+                ))}
+            </ul>
+        );
+    }, [activeResolutionHeight, resolutions, selectResolutionHandler]);
 
     const settingsMenu = (
         <div className="popup-drawer-menu">
@@ -114,32 +216,8 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
                 </span>
             </div>
             <ul className="popup-drawer-list">
-                {activeType === "speed" &&
-                    [0.5, 0.75, 1, 1.25, 1.5].map((playbackRate) => (
-                        <li
-                            key={playbackRate}
-                            className={`popup-drawer-list-item${
-                                activePlaybackRate === playbackRate
-                                    ? " active"
-                                    : ""
-                            }`}
-                            onClick={selectPlaybackRateHandler(playbackRate)}
-                        >
-                            {playbackRate}
-                        </li>
-                    ))}
-                {activeType === "resolution" &&
-                    [540, 720, 1080].map((resolution) => (
-                        <li
-                            key={resolution}
-                            className={`popup-drawer-list-item${
-                                resolution === 1080 ? " active" : ""
-                            }`}
-                            onClick={() => setIsInMainMenu(true)}
-                        >
-                            {resolution}
-                        </li>
-                    ))}
+                {activeType === "speed" && playBackRateList}
+                {activeType === "resolution" && resolutionList}
             </ul>
         </div>
     );

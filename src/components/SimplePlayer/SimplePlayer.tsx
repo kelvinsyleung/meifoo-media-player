@@ -15,6 +15,8 @@ import PopupDrawer from "../PopupDrawer";
 import VolumePopup from "../VolumePopup";
 import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
 import { formatTime } from "../../utils";
+import shaka from "shaka-player";
+import muxjs from "mux.js";
 
 const theme = createTheme({
     palette: {
@@ -26,6 +28,14 @@ const theme = createTheme({
         },
     },
 });
+
+declare global {
+    interface Window {
+        muxjs: unknown;
+    }
+}
+
+window.muxjs = muxjs;
 
 interface SimplePlayerProps {
     videoSrc: string;
@@ -41,6 +51,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
     onPause,
 }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const shakaPlayer = useRef<shaka.Player>();
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [volumeState, setVolumeState] = useState(1);
@@ -53,9 +64,35 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
     const [duration, setDuration] = useState(0);
     const [displayVolume, setDisplayVolume] = useState(false);
     const [activePlaybackRate, setActivePlaybackRate] = useState(1);
+    const [resolutions, setResolutions] = useState<shaka.extern.TrackList>([]);
+    const [activeResolutionHeight, setActiveResolutionHeight] = useState<
+        number | "auto"
+    >("auto");
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displaySettings, setDisplaySettings] = useState(false);
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    useEffect(() => {
+        (async () => {
+            const video = videoRef.current!;
+            const player = new shaka.Player(video);
+            await player.load(videoSrc);
+
+            shakaPlayer.current = player;
+            player.configure({
+                streaming: {
+                    lowLatencyMode: true,
+                },
+            });
+
+            const tracks = player.getVariantTracks();
+            // Sort it by height
+            const sortedTracks = tracks.sort((trackA, trackB) =>
+                (trackA?.height || 0) < (trackB?.height || 0) ? -1 : 1,
+            );
+            setResolutions(sortedTracks);
+        })();
+    }, [videoSrc]);
 
     const handlePlayPause = useCallback(() => {
         if (isPlaying) {
@@ -141,6 +178,22 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
             setActivePlaybackRate(playbackRate);
         }
     }, []);
+
+    const changeResolutionHandler = useCallback(
+        (resolution: shaka.extern.Track | "auto") => {
+            const player = shakaPlayer.current!;
+
+            if (resolution === "auto") {
+                player.configure({ abr: { enabled: true } });
+                setActiveResolutionHeight("auto");
+            } else {
+                player.configure({ abr: { enabled: false } });
+                player.selectVariantTrack(resolution);
+                setActiveResolutionHeight(resolution.height || 0);
+            }
+        },
+        [setActiveResolutionHeight],
+    );
 
     const handleFullScreen = useCallback(() => {
         if (!isFullScreen) {
@@ -277,7 +330,6 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                 >
                     <video
                         ref={videoRef}
-                        src={videoSrc}
                         onLoadedMetadata={handleDurationChange}
                         onVolumeChange={handleVolumeChange}
                         onTimeUpdate={handleTimeUpdate}
@@ -285,6 +337,9 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                         onSeeked={hideLoaderHandler}
                         onWaiting={showLoaderHandler}
                         onCanPlay={hideLoaderHandler}
+                        onError={(e) => {
+                            console.error("Error:", e);
+                        }}
                     />
                     <LoadingIndicator on={isLoading} />
                 </div>
@@ -384,6 +439,11 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                                     onChangePlaybackRate={
                                         changePlaybackRateHandler
                                     }
+                                    resolutions={resolutions}
+                                    activeResolutionHeight={
+                                        activeResolutionHeight
+                                    }
+                                    onChangeResolution={changeResolutionHandler}
                                 />
                                 <IconButton
                                     color="primary"

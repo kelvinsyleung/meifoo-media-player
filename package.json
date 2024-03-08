@@ -64,6 +64,8 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
-    "react-transition-group": "^4.4.5"
+    "mux.js": "^6.3.0",
+    "react-transition-group": "^4.4.5",
+    "shaka-player": "^4.7.11"
   }
 }
