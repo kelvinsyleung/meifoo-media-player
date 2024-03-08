@@ -68,15 +68,15 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     }, [isPlaying, onPause, onPlay]);
 
-    const showLoaderHandler = () => {
+    const showLoaderHandler = useCallback(() => {
         setIsLoading(true);
-    };
+    }, []);
 
-    const hideLoaderHandler = () => {
+    const hideLoaderHandler = useCallback(() => {
         setIsLoading(false);
-    };
+    }, []);
 
-    const handleMute = () => {
+    const handleMute = useCallback(() => {
         if (videoRef.current) {
             if (!videoRef.current.muted) {
                 volumeData.current = videoRef.current.volume;
@@ -90,9 +90,9 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                 setIsMuted(false);
             }
         }
-    };
+    }, []);
 
-    const handleVolumeChange = () => {
+    const handleVolumeChange = useCallback(() => {
         if (videoRef.current) {
             volumeData.current = videoRef.current.volume;
             setVolumeState(videoRef.current.volume);
@@ -103,9 +103,9 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                 setIsMuted(false);
             }
         }
-    };
+    }, [isMuted, volumeState]);
 
-    const handleTimeUpdate = () => {
+    const handleTimeUpdate = useCallback(() => {
         if (videoRef.current) {
             setCurrentTime(videoRef.current.currentTime);
 
@@ -126,7 +126,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                 }
             }
         }
-    };
+    }, []);
 
     const handleDurationChange = useCallback(() => {
         if (videoRef.current) {
@@ -134,12 +134,12 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     }, []);
 
-    const changePlaybackRateHandler = (playbackRate: number) => {
+    const changePlaybackRateHandler = useCallback((playbackRate: number) => {
         if (videoRef.current) {
             videoRef.current.playbackRate = playbackRate;
             setActivePlaybackRate(playbackRate);
         }
-    };
+    }, []);
 
     const handleFullScreen = useCallback(() => {
         if (!isFullScreen) {
@@ -170,55 +170,66 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     }, []);
 
-    const handleVolumeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (videoRef.current) {
-            videoRef.current.volume = parseFloat(event.target.value);
-        }
-    };
-
-    const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (videoRef.current) {
-            const seekTime = parseFloat(event.target.value); // Convert seekTime to a number
-            videoRef.current.currentTime = seekTime;
-        }
-    };
-
-    const seekMouseMoveHandler = (event: React.MouseEvent) => {
-        const offsetX = (event as React.MouseEvent).nativeEvent.offsetX;
-        seekMoveHandler(event, offsetX);
-    };
-
-    const seekTouchMoveHandler = (event: React.TouchEvent) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const offsetX =
-            (event as React.TouchEvent).targetTouches[0].pageX - rect.left;
-        seekMoveHandler(event, offsetX);
-    };
-
-    const seekMoveHandler = (
-        event: React.MouseEvent | React.TouchEvent,
-        offsetX: number,
-    ) => {
-        if (videoRef.current) {
-            const video = videoRef.current!;
-
-            const rect = event.currentTarget.getBoundingClientRect();
-            const skipTo = (offsetX / rect.width) * video.duration;
-
-            let formattedTime: string;
-
-            if (skipTo > video.duration) {
-                formattedTime = formatTime(video.duration);
-            } else if (skipTo < 0) {
-                formattedTime = "00:00";
-            } else {
-                formattedTime = formatTime(skipTo);
-                setSeekTooltipPosition(`${offsetX}px`);
+    const handleVolumeInput = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (videoRef.current) {
+                videoRef.current.volume = parseFloat(event.target.value);
             }
+        },
+        [],
+    );
 
-            setSeekTooltip(formattedTime);
-        }
-    };
+    const handleSeek = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = parseFloat(event.target.value);
+            }
+        },
+        [],
+    );
+
+    const seekMoveHandler = useCallback(
+        (event: React.MouseEvent | React.TouchEvent, offsetX: number) => {
+            if (videoRef.current) {
+                const video = videoRef.current!;
+
+                const rect = event.currentTarget.getBoundingClientRect();
+                const skipTo = (offsetX / rect.width) * video.duration;
+
+                let formattedTime: string;
+
+                if (skipTo > video.duration) {
+                    formattedTime = formatTime(video.duration);
+                } else if (skipTo < 0) {
+                    formattedTime = "00:00";
+                } else {
+                    formattedTime = formatTime(skipTo);
+                    setSeekTooltipPosition(`${offsetX}px`);
+                }
+
+                setSeekTooltip(formattedTime);
+            }
+        },
+        [],
+    );
+
+    const seekMouseMoveHandler = useCallback(
+        (event: React.MouseEvent) => {
+            const offsetX = (event as React.MouseEvent).nativeEvent.offsetX;
+            seekMoveHandler(event, offsetX);
+        },
+        [seekMoveHandler],
+    );
+
+    const seekTouchMoveHandler = useCallback(
+        (event: React.TouchEvent) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            const offsetX =
+                (event as React.TouchEvent).targetTouches[0].pageX - rect.left;
+            seekMoveHandler(event, offsetX);
+        },
+        [seekMoveHandler],
+    );
 
     // keyboard shortcuts
     useEffect(() => {
