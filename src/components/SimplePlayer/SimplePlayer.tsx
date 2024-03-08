@@ -3,13 +3,16 @@ import "./SimplePlayer.scss";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import VolumeMuteIcon from "@mui/icons-material/VolumeMute";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PictureInPictureAltIcon from "@mui/icons-material/PictureInPictureAlt";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import PopupDrawer from "../PopupDrawer";
+import VolumePopup from "../VolumePopup";
 
 const theme = createTheme({
     palette: {
@@ -37,12 +40,15 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
 }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [volumeState, setVolumeState] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
+    const volumeData = useRef(volumeState || 1);
     const [currentTime, setCurrentTime] = useState(0);
     const [bufferedTime, setBufferedTime] = useState(0);
     const [seekTooltip, setSeekTooltip] = useState("00:00");
     const [seekTooltipPosition, setSeekTooltipPosition] = useState("");
     const [duration, setDuration] = useState(0);
+    const [displayVolume, setDisplayVolume] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displaySettings, setDisplaySettings] = useState(false);
 
@@ -58,12 +64,34 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     }, [isPlaying, onPause, onPlay]);
 
-    const handleMute = useCallback(() => {
+    const handleMute = () => {
         if (videoRef.current) {
-            videoRef.current.muted = !videoRef.current.muted;
-            setIsMuted(videoRef.current.muted);
+            if (!videoRef.current.muted) {
+                volumeData.current = videoRef.current.volume;
+                videoRef.current.muted = true;
+                setVolumeState(0);
+                setIsMuted(true);
+            } else {
+                videoRef.current.volume = volumeData.current;
+                videoRef.current.muted = false;
+                setVolumeState(volumeData.current);
+                setIsMuted(false);
+            }
         }
-    }, []);
+    };
+
+    const handleVolumeChange = () => {
+        if (videoRef.current) {
+            volumeData.current = videoRef.current.volume;
+            setVolumeState(videoRef.current.volume);
+            setIsMuted(videoRef.current.muted);
+
+            if (isMuted && volumeState > 0) {
+                videoRef.current.muted = false;
+                setIsMuted(false);
+            }
+        }
+    };
 
     const handleTimeUpdate = () => {
         if (videoRef.current) {
@@ -88,11 +116,11 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
         }
     };
 
-    const handleDurationChange = () => {
+    const handleDurationChange = useCallback(() => {
         if (videoRef.current) {
             setDuration(videoRef.current.duration);
         }
-    };
+    }, []);
 
     const handleFullScreen = useCallback(() => {
         if (!isFullScreen) {
@@ -122,6 +150,12 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
             }
         }
     }, []);
+
+    const handleVolumeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (videoRef.current) {
+            videoRef.current.volume = parseFloat(event.target.value);
+        }
+    };
 
     const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (videoRef.current) {
@@ -216,6 +250,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                     onClick={handlePlayPause}
                     onDoubleClick={handleFullScreen}
                     onLoadedMetadata={handleDurationChange}
+                    onVolumeChange={handleVolumeChange}
                     onTimeUpdate={handleTimeUpdate}
                 />
                 {isSingleViewMode && (
@@ -270,18 +305,31 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                                         <PlayArrowIcon />
                                     )}
                                 </IconButton>
-                                <div className="volume">
+                                <div
+                                    className="volume"
+                                    onMouseEnter={() => setDisplayVolume(true)}
+                                    onMouseLeave={() => setDisplayVolume(false)}
+                                >
                                     <IconButton
                                         color="primary"
                                         onClick={handleMute}
                                     >
-                                        {isMuted ? (
-                                            <VolumeOffIcon />
-                                        ) : (
+                                        {isMuted && <VolumeOffIcon />}
+                                        {volumeState === 0 && !isMuted && (
+                                            <VolumeMuteIcon />
+                                        )}
+                                        {volumeState > 0 &&
+                                            volumeState <= 0.5 &&
+                                            !isMuted && <VolumeDownIcon />}
+                                        {volumeState > 0.5 && !isMuted && (
                                             <VolumeUpIcon />
                                         )}
                                     </IconButton>
-                                    {/* TODO: Volume control drawer */}
+                                    <VolumePopup
+                                        isDisplaying={displayVolume}
+                                        currentVolume={volumeState}
+                                        onVolumeInputChange={handleVolumeInput}
+                                    />
                                 </div>
                                 <div className="time">
                                     <span>{formatTime(currentTime)}</span>

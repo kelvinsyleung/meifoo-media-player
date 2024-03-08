@@ -83,7 +83,7 @@
     
                     &-current-thumb {
                         position: absolute;
-                        right: calc(0px - clamp(0.5rem, 1vw, 1rem) / 2);
+                        right: calc(0px - clamp(1rem, 1.5vw, 2rem) / 2);
                         width: clamp(1rem, 1.5vw, 2rem);
                         height: clamp(1rem, 1.5vw, 2rem);
                         border-radius: 50px;
