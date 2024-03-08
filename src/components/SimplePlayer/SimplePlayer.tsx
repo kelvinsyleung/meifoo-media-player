@@ -49,6 +49,7 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
     const [seekTooltipPosition, setSeekTooltipPosition] = useState("");
     const [duration, setDuration] = useState(0);
     const [displayVolume, setDisplayVolume] = useState(false);
+    const [activePlaybackRate, setActivePlaybackRate] = useState(1);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displaySettings, setDisplaySettings] = useState(false);
 
@@ -121,6 +122,13 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
             setDuration(videoRef.current.duration);
         }
     }, []);
+
+    const changePlaybackRateHandler = (playbackRate: number) => {
+        if (videoRef.current) {
+            videoRef.current.playbackRate = playbackRate;
+            setActivePlaybackRate(playbackRate);
+        }
+    };
 
     const handleFullScreen = useCallback(() => {
         if (!isFullScreen) {
@@ -341,6 +349,10 @@ const SimplePlayer: React.FC<SimplePlayerProps> = ({
                                 <PopupDrawer
                                     on={displaySettings}
                                     onClose={setDisplaySettings}
+                                    activePlaybackRate={activePlaybackRate}
+                                    onChangePlaybackRate={
+                                        changePlaybackRateHandler
+                                    }
                                 />
                                 <IconButton
                                     color="primary"

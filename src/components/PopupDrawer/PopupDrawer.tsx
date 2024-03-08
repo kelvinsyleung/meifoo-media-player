@@ -6,9 +6,16 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 interface PopupDrawerProps {
     on: boolean;
     onClose: (on: boolean) => void;
+    activePlaybackRate: number;
+    onChangePlaybackRate: (playbackRate: number) => void;
 }
 
-const PopupDrawer: React.FC<PopupDrawerProps> = ({ on, onClose }) => {
+const PopupDrawer: React.FC<PopupDrawerProps> = ({
+    on,
+    onClose,
+    activePlaybackRate,
+    onChangePlaybackRate,
+}) => {
     const [isMounted, setIsMounted] = useState(false);
     const [isInMainMenu, setIsInMainMenu] = useState(true);
     const [activeType, setActiveType] = useState<"speed" | "resolution">(
@@ -17,6 +24,7 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({ on, onClose }) => {
     const [DrawerHeight, setDrawerHeight] = useState<"initial" | number>(
         "initial",
     );
+
     const popupDrawerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -65,6 +73,13 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({ on, onClose }) => {
         setActiveType(type);
     };
 
+    const selectPlaybackRateHandler = (playbackRate: number) => {
+        return () => {
+            setIsInMainMenu(true);
+            onChangePlaybackRate(playbackRate);
+        };
+    };
+
     const mainMenu = (
         <div className="popup-drawer-menu">
             <ul className="popup-drawer-list">
@@ -73,7 +88,7 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({ on, onClose }) => {
                     onClick={() => selectMenuHandler("speed")}
                 >
                     <span>Speed</span>
-                    <span>x 1</span>
+                    <span>{activePlaybackRate}x</span>
                 </li>
                 <li
                     className="popup-drawer-list-item"
@@ -104,9 +119,11 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({ on, onClose }) => {
                         <li
                             key={playbackRate}
                             className={`popup-drawer-list-item${
-                                playbackRate === 1 ? " active" : ""
+                                activePlaybackRate === playbackRate
+                                    ? " active"
+                                    : ""
                             }`}
-                            onClick={() => setIsInMainMenu(true)}
+                            onClick={selectPlaybackRateHandler(playbackRate)}
                         >
                             {playbackRate}
                         </li>
