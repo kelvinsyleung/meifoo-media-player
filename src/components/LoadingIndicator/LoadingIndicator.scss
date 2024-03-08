@@ -1,0 +1,23 @@
+.loading-indicator {
+    position: absolute;
+    height: inherit;
+    width: inherit;
+    background-color: rgb(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+    &-enter {
+        opacity: 0;
+    }
+
+    &-enter-active {
+        opacity: 1;
+        transition: opacity 300ms ease-out;
+    }
+
+    &-exit {
+        opacity: 1;
+    }
+}
