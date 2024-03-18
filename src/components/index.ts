@@ -1,1 +1,1 @@
-export { default as SimplePlayer } from "./SimplePlayer";
+export { default as MeiFooPlayer } from "./MeiFooPlayer";

@@ -17,6 +17,7 @@ interface PopupDrawerProps {
     resolutions: shaka.extern.TrackList;
     activeResolutionHeight: number | "auto";
     onChangeResolution: (resolution: shaka.extern.Track | "auto") => void;
+    focusedIndex: number | null;
 }
 
 const PopupDrawer: React.FC<PopupDrawerProps> = ({
@@ -27,6 +28,7 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
     resolutions,
     activeResolutionHeight,
     onChangeResolution,
+    focusedIndex,
 }) => {
     const [isMounted, setIsMounted] = useState(false);
     const [isInMainMenu, setIsInMainMenu] = useState(true);
@@ -134,18 +136,20 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
                         <span>Speed</span>
                         <span>{activePlaybackRate}x</span>
                     </li>
-                    <li
-                        className="popup-drawer-list-item"
-                        onClick={selectMenuHandler("resolution")}
-                    >
-                        <span>Resolution</span>
-                        <span>
-                            {activeResolutionHeight === "auto" ||
-                            !matchedResolution
-                                ? `Auto ${autoResolutionHeight}`
-                                : `${activeResolutionHeight}p`}
-                        </span>
-                    </li>
+                    {focusedIndex !== null && (
+                        <li
+                            className="popup-drawer-list-item"
+                            onClick={selectMenuHandler("resolution")}
+                        >
+                            <span>Resolution</span>
+                            <span>
+                                {activeResolutionHeight === "auto" ||
+                                !matchedResolution
+                                    ? `Auto ${autoResolutionHeight}`
+                                    : `${activeResolutionHeight}p`}
+                            </span>
+                        </li>
+                    )}
                 </ul>
             </div>
         );
@@ -153,6 +157,7 @@ const PopupDrawer: React.FC<PopupDrawerProps> = ({
         activePlaybackRate,
         activeResolutionHeight,
         autoResolutionHeight,
+        focusedIndex,
         matchedResolution,
         selectMenuHandler,
     ]);
