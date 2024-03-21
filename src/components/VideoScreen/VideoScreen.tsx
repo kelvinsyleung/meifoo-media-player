@@ -4,6 +4,7 @@ import LoadingIndicator from "../LoadingIndicator";
 
 interface VideoScreenProps {
     videoRef: (videoNode: HTMLVideoElement) => void;
+    handleSwitchView: () => void;
     handlePlayPause: () => void;
     handleFullScreen: () => void;
     handleDurationChange: () => void;
@@ -12,11 +13,13 @@ interface VideoScreenProps {
     showLoaderHandler: () => void;
     hideLoaderHandler: () => void;
     isLoading: boolean;
-    // isViewFocused: boolean;
+    isZoomedIn: boolean;
+    style?: React.CSSProperties;
 }
 
 const VideoScreen: React.FC<VideoScreenProps> = ({
     videoRef,
+    handleSwitchView,
     handlePlayPause,
     handleFullScreen,
     handleDurationChange,
@@ -25,13 +28,21 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
     showLoaderHandler,
     hideLoaderHandler,
     isLoading,
-    // isViewFocused,
+    isZoomedIn,
+    style = {},
 }) => {
     return (
         <div
             className="video-container"
-            onClick={handlePlayPause}
+            onClick={() => {
+                if (isZoomedIn) {
+                    handlePlayPause();
+                } else {
+                    handleSwitchView();
+                }
+            }}
             onDoubleClick={handleFullScreen}
+            style={style}
         >
             <video
                 ref={videoRef}

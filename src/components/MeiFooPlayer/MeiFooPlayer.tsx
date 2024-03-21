@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./MeiFooPlayer.scss";
+import shaka from "shaka-player";
+import muxjs from "mux.js";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
@@ -14,8 +16,6 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import PopupDrawer from "../PopupDrawer";
 import VolumePopup from "../VolumePopup";
 import { formatTime } from "../../utils";
-import shaka from "shaka-player";
-import muxjs from "mux.js";
 import VideoScreen from "../VideoScreen";
 
 const theme = createTheme({
@@ -52,7 +52,6 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [volumeState, setVolumeState] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
-    const volumeData = useRef(volumeState || 1);
     const [currentTime, setCurrentTime] = useState(0);
     const [bufferedTime, setBufferedTime] = useState(0);
     const [seekTooltip, setSeekTooltip] = useState("00:00");
@@ -112,38 +111,29 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const handleMute = useCallback(() => {
         if (videoRefs.current.size > 0) {
             if (!isMuted) {
-                // store the current volume before muting, use the first video's volume
-                volumeData.current = videoRefs.current.get(0)!.volume;
                 videoRefs.current.forEach((videoNode) => {
                     videoNode.muted = true;
                 });
                 setVolumeState(0);
             } else {
                 videoRefs.current.forEach((videoNode) => {
-                    videoNode.volume = volumeData.current;
+                    videoNode.volume = videoRefs.current.get(0)!.volume;
                     videoNode.muted = false;
                 });
-                setVolumeState(volumeData.current);
+                setVolumeState(videoRefs.current.get(0)!.volume);
             }
-            setIsMuted((prev) => !prev);
+            setIsMuted(!isMuted);
         }
     }, [isMuted]);
 
     const handleVolumeChange = useCallback(() => {
         if (videoRefs.current.size > 0) {
-            volumeData.current = videoRefs.current.get(0)!.volume;
             setVolumeState(videoRefs.current.get(0)!.volume);
-            setIsMuted(videoRefs.current.get(0)!.muted);
-
-            if (isMuted && volumeState > 0) {
-                videoRefs.current.forEach((videoNode) => {
-                    videoNode.volume = volumeData.current;
-                    videoNode.muted = false;
-                });
-                setIsMuted(false);
-            }
+            videoRefs.current.forEach((videoNode) => {
+                videoNode.volume = videoRefs.current.get(0)!.volume;
+            });
         }
-    }, [isMuted, volumeState]);
+    }, []);
 
     const handleTimeUpdate = useCallback(() => {
         if (videoRefs.current.size > 0) {
@@ -357,30 +347,58 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
         }
     }, [handleFullScreen, handlePictureInPicture, handlePlayPause, videoRefs]);
 
+    const getGridTemplate = (numOfVids: number) => {
+        if (focusedIndex) {
+            return `1fr / 1fr`;
+        } else if (numOfVids === 2) {
+            return `1fr / 1fr 1fr`;
+        } else {
+            return `repeat(${Math.ceil(numOfVids / Math.ceil(numOfVids / 2))}, 1fr) / repeat(${Math.ceil(
+                numOfVids / 2,
+            )}, 1fr)`;
+        }
+    };
+
     return (
         <ThemeProvider theme={theme}>
             <div className="video-player-container">
-                {videoSrc.map((src, index) => (
-                    <VideoScreen
-                        key={index}
-                        videoRef={(videoNode) => {
-                            // ref callback
-                            if (videoNode) {
-                                videoRefs.current.set(index, videoNode);
-                            } else {
-                                videoRefs.current.delete(index);
-                            }
-                        }}
-                        handlePlayPause={handlePlayPause}
-                        handleFullScreen={handleFullScreen}
-                        handleDurationChange={handleDurationChange}
-                        handleVolumeChange={handleVolumeChange}
-                        handleTimeUpdate={handleTimeUpdate}
-                        showLoaderHandler={showLoaderHandler}
-                        hideLoaderHandler={hideLoaderHandler}
-                        isLoading={isLoading}
-                    />
-                ))}
+                <div
+                    className="video-screen-container"
+                    style={{
+                        gridTemplate: getGridTemplate(videoSrc.length),
+                    }}
+                >
+                    {videoSrc.map((src, index) => (
+                        <VideoScreen
+                            key={index}
+                            videoRef={(videoNode) => {
+                                // ref callback
+                                if (videoNode) {
+                                    videoRefs.current.set(index, videoNode);
+                                } else {
+                                    videoRefs.current.delete(index);
+                                }
+                            }}
+                            handleSwitchView={() => setFocusedIndex(index)}
+                            handlePlayPause={handlePlayPause}
+                            handleFullScreen={handleFullScreen}
+                            handleDurationChange={handleDurationChange}
+                            handleVolumeChange={handleVolumeChange}
+                            handleTimeUpdate={handleTimeUpdate}
+                            showLoaderHandler={showLoaderHandler}
+                            hideLoaderHandler={hideLoaderHandler}
+                            isLoading={isLoading}
+                            isZoomedIn={focusedIndex === index}
+                            style={{
+                                display:
+                                    focusedIndex === index ||
+                                    focusedIndex === null
+                                        ? "block"
+                                        : "none",
+                            }}
+                        />
+                    ))}
+                </div>
                 <div className="controls">
                     <div className="controls-progress-bar-container">
                         <div className="progress-bar">

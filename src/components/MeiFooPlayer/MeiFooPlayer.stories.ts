@@ -20,6 +20,15 @@ export const Default: Story = {
         videoSrc:
             // "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
             // ["http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"],
-            ["https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd"],
+            [
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+                "https://rdmedia.bbc.co.uk/bbb/2/client_manifest-common_init.mpd",
+            ],
     },
 };
