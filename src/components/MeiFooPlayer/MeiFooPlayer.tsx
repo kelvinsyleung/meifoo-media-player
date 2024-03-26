@@ -369,36 +369,37 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                         gridTemplate: getGridTemplate(videoSrc.length),
                     }}
                 >
-                    {videoSrc.map((src, index) => (
-                        <VideoScreen
-                            key={index}
-                            videoRef={(videoNode) => {
-                                // ref callback
-                                if (videoNode) {
-                                    videoRefs.current.set(index, videoNode);
-                                } else {
-                                    videoRefs.current.delete(index);
-                                }
-                            }}
-                            handleSwitchView={() => setFocusedIndex(index)}
-                            handlePlayPause={handlePlayPause}
-                            handleFullScreen={handleFullScreen}
-                            handleDurationChange={handleDurationChange}
-                            handleVolumeChange={handleVolumeChange}
-                            handleTimeUpdate={handleTimeUpdate}
-                            showLoaderHandler={showLoaderHandler}
-                            hideLoaderHandler={hideLoaderHandler}
-                            isLoading={isLoading}
-                            isZoomedIn={focusedIndex === index}
-                            style={{
-                                display:
-                                    focusedIndex === index ||
-                                    focusedIndex === null
-                                        ? "block"
-                                        : "none",
-                            }}
-                        />
-                    ))}
+                    {videoSrc.length > 0 &&
+                        videoSrc.map((src, index) => (
+                            <VideoScreen
+                                key={index}
+                                videoRef={(videoNode) => {
+                                    // ref callback
+                                    if (videoNode) {
+                                        videoRefs.current.set(index, videoNode);
+                                    } else {
+                                        videoRefs.current.delete(index);
+                                    }
+                                }}
+                                handleSwitchView={() => setFocusedIndex(index)}
+                                handlePlayPause={handlePlayPause}
+                                handleFullScreen={handleFullScreen}
+                                handleDurationChange={handleDurationChange}
+                                handleVolumeChange={handleVolumeChange}
+                                handleTimeUpdate={handleTimeUpdate}
+                                showLoaderHandler={showLoaderHandler}
+                                hideLoaderHandler={hideLoaderHandler}
+                                isLoading={isLoading}
+                                isZoomedIn={focusedIndex === index}
+                                style={{
+                                    display:
+                                        focusedIndex === index ||
+                                        focusedIndex === null
+                                            ? "block"
+                                            : "none",
+                                }}
+                            />
+                        ))}
                 </div>
                 <div className="controls">
                     <div className="controls-progress-bar-container">
