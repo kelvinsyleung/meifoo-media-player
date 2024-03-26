@@ -68,6 +68,12 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const [focusedIndex, setFocusedIndex] = useState<null | number>(null);
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
+    const bigThreshold = 0.1;
+    const bigSlowdown = 0.92;
+
+    const smallThreshold = 0.05;
+    const smallSlowdown = 0.98;
+
     useEffect(() => {
         if (videoSrc.length > 0) {
             videoRefs.current.forEach(async (videoNode, key) => {
@@ -359,6 +365,56 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
             )}, 1fr)`;
         }
     };
+
+    const syncIntervalRef = useRef<ReturnType<typeof setInterval>>();
+    useEffect(() => {
+        if (videoRefs.current.size > 0) {
+            if (
+                syncIntervalRef.current &&
+                (videoRefs.current.get(0)!.paused ||
+                    !isPlaying ||
+                    videoRefs.current.get(0)!.ended)
+            ) {
+                clearInterval(syncIntervalRef.current);
+            }
+            if (!syncIntervalRef.current && isPlaying) {
+                syncIntervalRef.current = setInterval(() => {
+                    // take the first video as the reference
+                    const video = videoRefs.current.get(0)!;
+                    const currentTime = video.currentTime;
+
+                    videoRefs.current.forEach((videoNode) => {
+                        const delta = videoNode.currentTime - currentTime;
+
+                        if (delta > bigThreshold) {
+                            // big difference, slow down
+                            videoNode.playbackRate =
+                                activePlaybackRate * bigSlowdown;
+                        } else if (delta > smallThreshold) {
+                            // small difference, slow down
+                            videoNode.playbackRate =
+                                activePlaybackRate * smallSlowdown;
+                        } else if (delta < -bigThreshold) {
+                            // big difference, speed up
+                            videoNode.playbackRate =
+                                activePlaybackRate / bigSlowdown;
+                        } else if (delta < -smallThreshold) {
+                            // small difference, speed up
+                            videoNode.playbackRate =
+                                activePlaybackRate / smallSlowdown;
+                        } else {
+                            // reset playback rate
+                            videoNode.playbackRate = activePlaybackRate;
+                        }
+                    });
+                }, 100);
+            }
+
+            return () => {
+                clearInterval(syncIntervalRef.current);
+            };
+        }
+    }, [activePlaybackRate, isPlaying]);
 
     return (
         <ThemeProvider theme={theme}>
