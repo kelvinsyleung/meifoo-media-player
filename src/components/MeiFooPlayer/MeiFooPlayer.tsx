@@ -70,9 +70,8 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
 
     useEffect(() => {
         if (videoSrc.length > 0) {
-            videoRefs.current.forEach(async (ref, key) => {
-                const video = ref;
-                const player = new shaka.Player(video);
+            videoRefs.current.forEach(async (videoNode, key) => {
+                const player = new shaka.Player(videoNode);
                 await player.load(videoSrc[key]);
                 shakaPlayers.current.set(key, player);
 
@@ -81,6 +80,10 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                         lowLatencyMode: true,
                     },
                 });
+                if (key !== 0) {
+                    videoNode.muted = true;
+                    videoNode.volume = 0;
+                }
             });
             if (videoRefs.current.size == 1) {
                 setFocusedIndex(0);
@@ -111,15 +114,10 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const handleMute = useCallback(() => {
         if (videoRefs.current.size > 0) {
             if (!isMuted) {
-                videoRefs.current.forEach((videoNode) => {
-                    videoNode.muted = true;
-                });
+                videoRefs.current.get(0)!.muted = true;
                 setVolumeState(0);
             } else {
-                videoRefs.current.forEach((videoNode) => {
-                    videoNode.volume = videoRefs.current.get(0)!.volume;
-                    videoNode.muted = false;
-                });
+                videoRefs.current.get(0)!.muted = false;
                 setVolumeState(videoRefs.current.get(0)!.volume);
             }
             setIsMuted(!isMuted);
@@ -129,11 +127,14 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const handleVolumeChange = useCallback(() => {
         if (videoRefs.current.size > 0) {
             setVolumeState(videoRefs.current.get(0)!.volume);
-            videoRefs.current.forEach((videoNode) => {
-                videoNode.volume = videoRefs.current.get(0)!.volume;
-            });
+            setIsMuted(videoRefs.current.get(0)!.muted);
+
+            if (isMuted && volumeState > 0) {
+                videoRefs.current.get(0)!.muted = false;
+                setIsMuted(false);
+            }
         }
-    }, []);
+    }, [isMuted, volumeState]);
 
     const handleTimeUpdate = useCallback(() => {
         if (videoRefs.current.size > 0) {
