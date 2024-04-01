@@ -48,6 +48,7 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const shakaPlayers = useRef<Map<number, shaka.Player>>(
         new Map<number, shaka.Player>(),
     );
+    const [isInitialised, setIsInitialised] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [volumeState, setVolumeState] = useState(1);
@@ -75,36 +76,48 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const smallSlowdown = 0.98;
 
     useEffect(() => {
-        if (videoSrc.length > 0) {
-            videoRefs.current.forEach(async (videoNode, key) => {
-                const player = new shaka.Player(videoNode);
-                await player.load(videoSrc[key]);
-                shakaPlayers.current.set(key, player);
+        // initialise shaka players
+        async function loadVideos() {
+            if (videoSrc.length > 0) {
+                for await (const [index, src] of videoSrc.entries()) {
+                    const player = new shaka.Player(
+                        videoRefs.current.get(index)!,
+                    );
+                    shakaPlayers.current.set(index, player);
 
-                player.configure({
-                    streaming: {
-                        lowLatencyMode: true,
-                    },
-                });
-                if (key !== 0) {
-                    videoNode.muted = true;
-                    videoNode.volume = 0;
+                    player.load(src);
+                    player.configure({
+                        streaming: {
+                            lowLatencyMode: true,
+                        },
+                    });
+                    if (index !== 0) {
+                        videoRefs.current.get(index)!.muted = true;
+                        videoRefs.current.get(index)!.volume = 0;
+                    }
                 }
-            });
-            if (videoRefs.current.size == 1) {
-                setFocusedIndex(0);
+                if (videoRefs.current.size == 1) {
+                    setFocusedIndex(0);
+                }
+            } else {
+                console.warn("Invalid video source provided!");
             }
-        } else {
-            console.warn("Invalid video source provided!");
         }
+        loadVideos().then(() => {
+            setIsInitialised(true);
+        });
     }, [videoSrc]);
 
-    const handlePlayPause = useCallback(() => {
+    const handlePlayPause = useCallback(async () => {
         if (isPlaying) {
-            videoRefs.current.forEach((videoNode) => videoNode.pause());
+            for await (const videoNode of videoRefs.current.values()) {
+                videoNode.pause();
+            }
             setIsPlaying(false);
         } else {
-            videoRefs.current.forEach((videoNode) => videoNode.play());
+            for await (const videoNode of videoRefs.current.values()) {
+                videoNode.play();
+            }
             setIsPlaying(true);
         }
     }, [isPlaying]);
@@ -173,14 +186,17 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
         }
     }, []);
 
-    const changePlaybackRateHandler = useCallback((playbackRate: number) => {
-        if (videoRefs.current.size > 0) {
-            videoRefs.current.forEach((videoNode) => {
-                videoNode.playbackRate = playbackRate;
-            });
-            setActivePlaybackRate(playbackRate);
-        }
-    }, []);
+    const changePlaybackRateHandler = useCallback(
+        async (playbackRate: number) => {
+            if (videoRefs.current.size > 0) {
+                for await (const videoNode of videoRefs.current.values()) {
+                    videoNode.playbackRate = playbackRate;
+                }
+                setActivePlaybackRate(playbackRate);
+            }
+        },
+        [],
+    );
 
     const changeResolutionHandler = useCallback(
         (resolution: shaka.extern.Track | "auto") => {
@@ -251,26 +267,31 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     }, [focusedIndex]);
 
     const handleVolumeInput = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
+        async (event: React.ChangeEvent<HTMLInputElement>) => {
             if (videoRefs.current.size > 0) {
-                videoRefs.current.forEach((videoNode) => {
-                    videoNode!.volume = parseFloat(event.target.value);
-                });
+                for await (const videoNode of videoRefs.current.values()) {
+                    videoNode.volume = parseFloat(event.target.value);
+                }
             }
         },
         [],
     );
 
-    const handleSeek = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            if (videoRefs.current.size > 0) {
-                videoRefs.current.forEach((videoNode) => {
-                    videoNode.currentTime = parseFloat(event.target.value);
-                });
+    const handleSeek = useCallback(async () => {
+        if (videoRefs.current.size > 0) {
+            const [minutes, seconds] = seekTooltip.split(":");
+            console.log(
+                "Seeking to:",
+                parseInt(minutes) * 60 + parseInt(seconds),
+            );
+            for await (const videoNode of videoRefs.current.values()) {
+                videoNode.currentTime =
+                    parseInt(minutes) * 60 + parseInt(seconds);
+
+                console.log("Seeked to:", videoNode.currentTime);
             }
-        },
-        [],
-    );
+        }
+    }, [seekTooltip]);
 
     const seekMoveHandler = useCallback(
         (event: React.MouseEvent | React.TouchEvent, offsetX: number) => {
@@ -318,7 +339,7 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     // keyboard shortcuts
     useEffect(() => {
         const videoElements = videoRefs.current;
-        const handleKeyDown = (event: KeyboardEvent) => {
+        const handleKeyDown = async (event: KeyboardEvent) => {
             if (event.key === " ") {
                 event.preventDefault();
                 handlePlayPause();
@@ -326,17 +347,17 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
             if (event.key === "ArrowRight") {
                 if (videoRefs.current) {
                     event.preventDefault();
-                    videoRefs.current.forEach((videoNode) => {
+                    for await (const videoNode of videoRefs.current.values()) {
                         videoNode.currentTime += 5;
-                    });
+                    }
                 }
             }
             if (event.key === "ArrowLeft") {
                 if (videoRefs.current) {
                     event.preventDefault();
-                    videoRefs.current.forEach((videoNode) => {
+                    for await (const videoNode of videoRefs.current.values()) {
                         videoNode.currentTime -= 5;
-                    });
+                    }
                 }
             }
             if (event.key === "f") {
@@ -368,14 +389,14 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
     const getGridTemplate = useCallback(
         (numOfVids: number) => {
             if (focusedIndex !== null) {
-            return `1fr / 1fr`;
-        } else if (numOfVids === 2) {
-            return `1fr / 1fr 1fr`;
-        } else {
-            return `repeat(${Math.ceil(numOfVids / Math.ceil(numOfVids / 2))}, 1fr) / repeat(${Math.ceil(
-                numOfVids / 2,
-            )}, 1fr)`;
-        }
+                return `1fr / 1fr`;
+            } else if (numOfVids === 2) {
+                return `1fr / 1fr 1fr`;
+            } else {
+                return `repeat(${Math.ceil(numOfVids / Math.ceil(numOfVids / 2))}, 1fr) / repeat(${Math.ceil(
+                    numOfVids / 2,
+                )}, 1fr)`;
+            }
         },
         [focusedIndex],
     );
@@ -392,12 +413,12 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                 clearInterval(syncIntervalRef.current);
             }
             if (!syncIntervalRef.current && isPlaying) {
-                syncIntervalRef.current = setInterval(() => {
+                syncIntervalRef.current = setInterval(async () => {
                     // take the first video as the reference
                     const video = videoRefs.current.get(0)!;
                     const currentTime = video.currentTime;
 
-                    videoRefs.current.forEach((videoNode) => {
+                    for await (const videoNode of videoRefs.current.values()) {
                         const delta = videoNode.currentTime - currentTime;
 
                         if (delta > bigThreshold) {
@@ -420,7 +441,7 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                             // reset playback rate
                             videoNode.playbackRate = activePlaybackRate;
                         }
-                    });
+                    }
                 }, 100);
             }
 
@@ -451,7 +472,8 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                                         videoRefs.current.delete(index);
                                     }
                                 }}
-                                handleSwitchView={() => setFocusedIndex(index)}
+                                handleZoomIn={() => handleZoom(index)}
+                                handleZoomOut={() => handleZoom(null)}
                                 handlePlayPause={handlePlayPause}
                                 handleFullScreen={handleFullScreen}
                                 handleDurationChange={handleDurationChange}
@@ -461,6 +483,7 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                                 hideLoaderHandler={hideLoaderHandler}
                                 isLoading={isLoading}
                                 isZoomedIn={focusedIndex === index}
+                                isOnlyVideo={videoSrc.length === 1}
                                 style={{
                                     display:
                                         focusedIndex === index ||
@@ -515,6 +538,14 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                             <IconButton
                                 color="primary"
                                 onClick={handlePlayPause}
+                                disabled={
+                                    // check if all ready to play
+                                    Array.from(videoRefs.current.values()).some(
+                                        (videoNode) =>
+                                            videoNode.readyState < 4 ||
+                                            videoNode.networkState === 2,
+                                    ) && !isInitialised
+                                }
                             >
                                 {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
                             </IconButton>
