@@ -1,5 +1,8 @@
 node_modules
 dist
+videos/**/*.ts
+videos/**/*.m3u8
+videos/**/*.mp4
 
 #storybook build directory
 storybook-static
