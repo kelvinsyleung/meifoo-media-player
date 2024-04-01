@@ -1,10 +1,13 @@
 import React from "react";
 import "./VideoScreen.scss";
 import LoadingIndicator from "../LoadingIndicator";
+import { IconButton } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 interface VideoScreenProps {
     videoRef: (videoNode: HTMLVideoElement) => void;
-    handleSwitchView: () => void;
+    handleZoomIn: () => void;
+    handleZoomOut: () => void;
     handlePlayPause: () => void;
     handleFullScreen: () => void;
     handleDurationChange: () => void;
@@ -14,12 +17,14 @@ interface VideoScreenProps {
     hideLoaderHandler: () => void;
     isLoading: boolean;
     isZoomedIn: boolean;
+    isOnlyVideo: boolean;
     style?: React.CSSProperties;
 }
 
 const VideoScreen: React.FC<VideoScreenProps> = ({
     videoRef,
-    handleSwitchView,
+    handleZoomIn,
+    handleZoomOut,
     handlePlayPause,
     handleFullScreen,
     handleDurationChange,
@@ -29,21 +34,35 @@ const VideoScreen: React.FC<VideoScreenProps> = ({
     hideLoaderHandler,
     isLoading,
     isZoomedIn,
+    isOnlyVideo,
     style = {},
 }) => {
     return (
         <div
             className="video-container"
             onClick={() => {
-                if (isZoomedIn) {
+                if (isZoomedIn || isOnlyVideo) {
                     handlePlayPause();
                 } else {
-                    handleSwitchView();
+                    handleZoomIn();
                 }
             }}
             onDoubleClick={handleFullScreen}
             style={style}
         >
+            {isZoomedIn && !isOnlyVideo && (
+                <IconButton
+                    className="zoom-out"
+                    color={"primary"}
+                    onClick={(e) => {
+                        // stop propagation to prevent video from pausing
+                        e.stopPropagation();
+                        handleZoomOut();
+                    }}
+                >
+                    <ArrowBackIcon />
+                </IconButton>
+            )}
             <video
                 ref={videoRef}
                 onLoadedMetadata={handleDurationChange}

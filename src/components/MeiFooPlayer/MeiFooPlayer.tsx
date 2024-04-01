@@ -354,8 +354,20 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
         }
     }, [handleFullScreen, handlePictureInPicture, handlePlayPause, videoRefs]);
 
-    const getGridTemplate = (numOfVids: number) => {
-        if (focusedIndex) {
+    const handleZoom = useCallback(
+        (key: number | null) => {
+            if (focusedIndex !== null) {
+                setFocusedIndex(null);
+            } else {
+                setFocusedIndex(key);
+            }
+        },
+        [focusedIndex],
+    );
+
+    const getGridTemplate = useCallback(
+        (numOfVids: number) => {
+            if (focusedIndex !== null) {
             return `1fr / 1fr`;
         } else if (numOfVids === 2) {
             return `1fr / 1fr 1fr`;
@@ -364,7 +376,9 @@ const MeiFooPlayer: React.FC<MeiFooPlayerProps> = ({ videoSrc }) => {
                 numOfVids / 2,
             )}, 1fr)`;
         }
-    };
+        },
+        [focusedIndex],
+    );
 
     const syncIntervalRef = useRef<ReturnType<typeof setInterval>>();
     useEffect(() => {
